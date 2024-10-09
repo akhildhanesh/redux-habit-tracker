@@ -1,17 +1,41 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../store/store";
-import { Box, Button, Grid2, Paper, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Grid2,
+  LinearProgress,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { CheckCircle, Delete } from "@mui/icons-material";
-import { removeHabit, toggleHabit } from "../features/habit/habitSlice";
+import { Habit, removeHabit, toggleHabit } from "../features/habit/habitSlice";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link } from "react-router-dom";
+import HabitStats from "./HabitStats";
 
 const HabitList = () => {
   const { habits } = useSelector((state: RootState) => state.habit);
   const dispatch = useDispatch();
   const today = new Date().toISOString().split("T")[0];
+  const getStreak = (habit: Habit) => {
+    let streak = 0;
+    const currentDate = new Date();
+
+    while (true) {
+      const dateString = currentDate.toISOString().split("T")[0];
+      if (habit.completedDates.includes(dateString)) {
+        streak += 1;
+        currentDate.setDate(currentDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  };
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 4 }}>
       <ToastContainer />
@@ -81,17 +105,30 @@ const HabitList = () => {
                   </Button>
                 </Box>
               </Box>
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2">
+                  Current Streak: {getStreak(habit)} days
+                </Typography>
+                <LinearProgress
+                  variant="determinate"
+                  value={(getStreak(habit) / 30) * 100}
+                  sx={{ mt: 5 }}
+                />
+              </Box>
             </Paper>
           );
         })
       ) : (
-        <div style={{textAlign: 'center'}}>
+        <div style={{ textAlign: "center" }}>
           <h3>No Habits to Show</h3>
-          <span style={{color: 'blue'}}>
-            <Link to='/' style={{textDecoration: 'none', color: 'inherit'}}>Click Here To Add Habit</Link>
+          <span style={{ color: "blue" }}>
+            <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+              Click Here To Add Habit
+            </Link>
           </span>
         </div>
       )}
+      <HabitStats />
     </Box>
   );
 };
